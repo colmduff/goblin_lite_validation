@@ -18,7 +18,7 @@ ARG GIT_ACCESS_TOKEN
 RUN git config --global url."https://${GIT_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 # Install goblin_lite package from the Git repository URL with authentication
-RUN pip install "goblin_validation@git+https://github.com/colmduff/goblin_validation.git@main" 
+RUN pip install "goblin_validation_py@git+https://github.com/colmduff/goblin_validation_py.git@main" 
 
 
 ENV PATH="$HOME/.local/bin:${PATH}"
