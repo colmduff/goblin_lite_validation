@@ -1,0 +1,54 @@
+name: Publish Docker image to DockerHub
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@master
+      with:
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@1.67.0
+      id: bump
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WORKING_DIRECTORY: /github/workspace
+        WITH_V: false
+
+    - name: Debug Generated Tag
+      run: |
+        echo "Generated Tag: ${{ steps.bump.outputs.new_tag }}"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.1.4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token (remember to set permissions)
+      with:
+        tag_name: ${{ steps.bump.outputs.new_tag }}
+        release_name: ${{ steps.bump.outputs.new_tag }}
+        body: |
+          Changes in this Release
+          - Rebuilt Docker image and published to DockerHub with new tag
+        draft: false
+        prerelease: false
+      
+
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@v5
+      env:
+        GIT_ACCESS_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+      with:
+        name: colmduff/goblin_lite_validation
+        username: ${{ secrets.DOCKER_USERNAME_CD }}
+        password: ${{ secrets.DOCKER_PASSWORD_CD }}
+        buildargs: GIT_ACCESS_TOKEN
+        tags: "latest,${{ steps.bump.outputs.new_tag }}"
